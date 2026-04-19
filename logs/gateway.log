@@ -1,0 +1,6 @@
+[2026-04-19 14:00:01] INFO: Gateway started.
+[2026-04-19 14:05:22] INFO: User requested weather for 'San Francisco'.
+[2026-04-19 14:05:23] ERROR: [CRITICAL_FAILURE] WeatherSkill failed: getaddrinfo ENOTFOUND api.legacy-weather.service
+    at getWeather (C:\Users\abhis\Desktop\hackathon_place\AgentSkills\WeatherSkill.js:15:28)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+[2026-04-19 14:10:00] ERROR: [CRITICAL_FAILURE] WeatherSkill failed: getaddrinfo ENOTFOUND api.legacy-weather.service
