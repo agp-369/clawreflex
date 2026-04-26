@@ -6,17 +6,9 @@
   "scripts": {
     "test": "mocha tests --exit",
     "start": "node src/monitor.js",
-    "heal": "node src/surgeon.js WeatherSkill 'getaddrinfo ENOTFOUND api.legacy-weather.service'",
-    "demo": "node demo.js"
+    "heal": "node src/surgeon.js WeatherSkill 'getaddrinfo ENOTFOUND api.legacy-weather.service'"
   },
-  "keywords": [
-    "openclaw",
-    "ai",
-    "self-healing",
-    "autonomous",
-    "agent"
-  ],
-  "author": "",
+  "keywords": ["openclaw", "ai", "self-healing", "autonomous", "agent"],
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
