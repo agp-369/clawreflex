@@ -23,7 +23,7 @@ let lastPosition = 0;
 function initialize() {
     if (fs.existsSync(LOG_FILE)) {
         const stats = fs.statSync(LOG_FILE);
-        lastPosition = stats.size;
+        lastPosition = 0; // Start from beginning to scan existing entries
     } else {
         fs.writeFileSync(LOG_FILE, `[${new Date().toISOString()}] INFO: Gateway started.\n`);
         lastPosition = 0;
