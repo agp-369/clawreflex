@@ -5,6 +5,7 @@
 
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config();
 
 const skillName = process.argv[2];
 const errorMessage = process.argv[3];
@@ -42,14 +43,17 @@ async function operate() {
         const fix = await generateAIFix(skillName, code, errorMessage);
         
         if (fix) {
+            // Clean markdown code blocks
+            const cleanFix = fix.replace(/^```javascript\n/, '').replace(/```$/, '');
+            
             console.log(`💡 AI suggested fix:`);
-            console.log(fix.substring(0, 200) + '...');
+            console.log(cleanFix.substring(0, 200) + '...');
             
             console.log(`\n🛡️ Creating Git backup...`);
             await createGitBackup(skillName, code);
             
             console.log(`💉 Applying AI-generated fix...`);
-            fs.writeFileSync(SKILL_PATH, fix);
+            fs.writeFileSync(SKILL_PATH, cleanFix);
             
             console.log(`✅ ${skillName} has been healed by AI!`);
             logHealing(skillName, 'SUCCESS', 'AI healed');
@@ -79,7 +83,7 @@ async function healWithGroq(skillName, code, error) {
     const hint = SKILL_FIXES[skillName]?.hint || 'Fix this error';
     
     const response = await client.chat.completions.create({
-        model: 'llama-3.1-70b-versatile',
+        model: 'llama-3.3-70b-versatile',
         messages: [
             {
                 role: 'system',
