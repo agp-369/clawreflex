@@ -1,19 +1,22 @@
 {
-  "name": "hackathon_place",
+  "name": "clawreflex",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "directories": {
-    "test": "tests"
-  },
+  "description": "Self-healing immune system for OpenClaw - autonomous code repair for AI agents",
+  "main": "src/monitor.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha tests --exit",
+    "start": "node src/monitor.js",
+    "heal": "node src/surgeon.js WeatherSkill 'getaddrinfo ENOTFOUND api.legacy-weather.service'",
+    "demo": "node src/demo.js"
   },
-  "keywords": [],
+  "keywords": ["openclaw", "ai", "self-healing", "autonomous", "agent"],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
     "axios": "^1.15.0"
+  },
+  "devDependencies": {
+    "mocha": "^11.7.5"
   }
 }
