@@ -1,66 +1,49 @@
 # ClawReflex
 
-**Self-Healing Immune System for OpenClaw**
+Self-Healing Immune System for OpenClaw agents.
 
-## What is ClawReflex?
+## Overview
 
-ClawReflex is an autonomous monitoring and healing system for OpenClaw agents. When your AI skills crash due to API changes, service outages, or code rot, ClawReflex detects the failure and autonomously repairs your code in real-time.
+ClawReflex is an autonomous monitoring and healing system for OpenClaw. When skills crash due to API changes or service outages, ClawReflex detects the failure and autonomously repairs code in real-time.
 
 ## Features
 
-- **Real-time Log Monitoring** - Watches gateway logs for CRITICAL_FAILURE patterns
-- **Autonomous Code Surgery** - Automatically fixes broken API endpoints
-- **Git-Based Rollbacks** - Creates backup commits before healing
-- **Module Verification** - Ensures fixed code loads correctly
-- **Peace of Mind Reports** - Generates supportive Post-Mortem notes
+- Real-time log monitoring with failure pattern detection
+- Autonomous code repair for broken API endpoints
+- Git-based rollback for safe healing
+- Module verification after fixes
+- Post-Mortem reports for developers
 
-## Quick Start
+## Installation
 
 ```bash
-# Install dependencies
 npm install
+```
 
+## Usage
+
+```bash
 # Run tests
 npm test
 
-# Start the monitor
+# Start monitoring
 npm start
-
-# Trigger manual healing
-npm run heal
 ```
 
-## Project Structure
+## To Demonstrate
 
-```
-AgentSkills/          - OpenClaw skills (WeatherSkill, EmailSkill)
-src/
-  monitor.js        - Guardian that watches logs
-  surgeon.js       - Heals broken skills
-logs/              - Gateway logs and Post-Mortem reports
-tests/             - Test suites
-```
+1. Start monitor: `npm start`
+2. In another terminal, trigger failure:
+   ```bash
+   echo "[2026-04-26] ERROR: [CRITICAL_FAILURE] WeatherSkill failed: ENOTFOUND" >> logs/gateway.log
+   ```
+3. Watch monitor detect and heal automatically
 
 ## Architecture
 
 ```
-[gateway.log] → [Monitor] → [Surgeon] → [Healed Skill]
-                    ↓
-              [Git Backup]
-              [Verification]
-              [Post-Mortem Report]
+[gateway.log] → [Monitor] → [Surgeon] → [Healed Skill + Git Backup + Post-Mortem]
 ```
-
-## Tech Stack
-
-- Node.js
-- OpenClaw Framework
-- axios (HTTP client)
-- Mocha (testing)
-
-## Demo
-
-Watch the demo video following `VIDEO_GUIDE.md` to see ClawReflex in action.
 
 ## License
 
