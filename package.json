@@ -1,18 +1,20 @@
 {
   "name": "clawreflex",
   "version": "1.0.0",
-  "description": "Self-healing immune system for OpenClaw - autonomous code repair for AI agents",
+  "description": "Self-healing immune system for OpenClaw - autonomous AI code repair",
   "main": "src/monitor.js",
   "scripts": {
     "test": "mocha tests --exit",
-    "start": "node src/monitor.js",
-    "heal": "node src/surgeon.js WeatherSkill 'getaddrinfo ENOTFOUND api.legacy-weather.service'"
+    "start": "node src/monitor.js"
   },
   "keywords": ["openclaw", "ai", "self-healing", "autonomous", "agent"],
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "axios": "^1.15.0"
+    "axios": "^1.15.0",
+    "groq-sdk": "^0.5.0",
+    "@google/generative-ai": "^0.21.0",
+    "dotenv": "^16.4.0"
   },
   "devDependencies": {
     "mocha": "^11.3.0"

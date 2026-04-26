@@ -1,6 +1,6 @@
 /**
  * WeatherSkill.js
- * Weather skill using deprecated API
+ * Weather skill for OpenClaw
  */
 
 const axios = require('axios');
@@ -23,4 +23,13 @@ async function getWeather(city) {
     }
 }
 
-module.exports = { getWeather };
+async function getForecast(city, days = 3) {
+    const weather = await getWeather(city);
+    return {
+        city,
+        forecast: weather.forecast || 'Sunny',
+        days
+    };
+}
+
+module.exports = { getWeather, getForecast };

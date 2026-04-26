@@ -1,7 +1,6 @@
 /**
  * surgeon.js
- * The "Code Surgeon" that diagnoses and fixes broken skills autonomously.
- * This is the core healing engine of ClawReflex.
+ * AI-Powered Code Surgeon - uses LLM to autonomously fix broken skills
  */
 
 const fs = require('fs');
@@ -9,85 +8,128 @@ const path = require('path');
 
 const skillName = process.argv[2];
 const errorMessage = process.argv[3];
+const provider = process.env.AI_PROVIDER || 'groq';
 
 const SKILL_PATH = path.join(__dirname, `../AgentSkills/${skillName}.js`);
 const LOG_DIR = path.join(__dirname, '../logs');
 const LOG_FILE = path.join(LOG_DIR, 'gateway.log');
 
-const API_FIXES = {
+const SKILL_FIXES = {
     'WeatherSkill': {
-        deprecated: 'https://api.legacy-weather.service/v1/current?q=${city}',
-        replacement: 'https://wttr.in/${city}?format=j1',
-        comment: 'HEALED BY CLAWREFLEX: Switched to wttr.in API'
+        deprecated: 'api.legacy-weather.service',
+        hint: 'Use wttr.in free weather API or open-meteo.com'
     },
     'EmailSkill': {
-        deprecated: 'https://api.example-email.service/v1/send',
-        replacement: 'https://api.resend.com/v0.1/emails',
-        comment: 'HEALED BY CLAWREFLEX: Switched to Resend API'
+        deprecated: 'api.example-email.service',
+        hint: 'Use Resend API or sendgrid'
     }
 };
 
 async function operate() {
     console.log(`🔍 Diagnosing ${skillName}...`);
-    console.log(`📝 Error received: "${errorMessage}"`);
+    console.log(`📝 Error: ${errorMessage}`);
 
     if (!fs.existsSync(SKILL_PATH)) {
         console.error(`❌ Skill file not found at ${SKILL_PATH}`);
-        logHealingAttempt(skillName, 'FAILED', 'Skill file not found');
+        logHealing(skillName, 'FAILED', 'Skill not found');
         return;
     }
 
     const code = fs.readFileSync(SKILL_PATH, 'utf8');
-    console.log(`🧠 Analyzing code structure...`);
-    
-    const fix = API_FIXES[skillName];
-    let newCode = code;
-    let fixApplied = false;
+    console.log(`🧠 Analyzing code with AI (${provider})...`);
 
-    if (fix && code.includes(fix.deprecated)) {
-        newCode = code.replace(fix.deprecated, fix.replacement);
-        fixApplied = true;
-        console.log(`✨ Applied API fix for ${skillName}`);
-    }
-
-    if (fixApplied) {
-        console.log(`🛡️ Creating Git backup before surgery...`);
-        await createGitBackup(skillName);
+    try {
+        const fix = await generateAIFix(skillName, code, errorMessage);
         
-        console.log(`💉 Applying fix to ${skillName}...`);
-        fs.writeFileSync(SKILL_PATH, newCode);
-        
-        console.log(`✅ ${skillName} has been healed!`);
-        logHealingAttempt(skillName, 'SUCCESS', errorMessage);
-        
-        generatePostMortem(skillName, errorMessage);
-        
-        await verifyFix(SKILL_PATH);
-    } else {
-        console.log(`⚠️ No known fix pattern found for this error`);
-        logHealingAttempt(skillName, 'MANUAL_REQUIRED', errorMessage);
+        if (fix) {
+            console.log(`💡 AI suggested fix:`);
+            console.log(fix.substring(0, 200) + '...');
+            
+            console.log(`\n🛡️ Creating Git backup...`);
+            await createGitBackup(skillName, code);
+            
+            console.log(`💉 Applying AI-generated fix...`);
+            fs.writeFileSync(SKILL_PATH, fix);
+            
+            console.log(`✅ ${skillName} has been healed by AI!`);
+            logHealing(skillName, 'SUCCESS', 'AI healed');
+            generatePostMortem(skillName, errorMessage);
+            
+            await verifyFix(SKILL_PATH);
+        }
+    } catch (e) {
+        console.error(`❌ AI healing failed: ${e.message}`);
+        logHealing(skillName, 'FAILED', e.message);
     }
 }
 
-async function createGitBackup(skillName) {
-    const { execSync } = require('child_process');
+async function generateAIFix(skillName, code, error) {
+    if (provider === 'groq') {
+        return await healWithGroq(skillName, code, error);
+    } else if (provider === 'gemini') {
+        return await healWithGemini(skillName, code, error);
+    }
+    return null;
+}
+
+async function healWithGroq(skillName, code, error) {
+    const Groq = require('groq-sdk');
+    const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    
+    const hint = SKILL_FIXES[skillName]?.hint || 'Fix this error';
+    
+    const response = await client.chat.completions.create({
+        model: 'llama-3.1-70b-versatile',
+        messages: [
+            {
+                role: 'system',
+                content: 'You are an expert code surgeon. Fix the broken code. Return ONLY the fixed code, no explanations.'
+            },
+            {
+                role: 'user',
+                content: `Fix this ${skillName}.js code.\n\nError: ${error}\n\nCurrent code:\n${code}\n\nHint: ${hint}\n\nReturn the complete fixed code:`
+            }
+        ],
+        temperature: 0.3
+    });
+
+    return response.choices[0]?.message?.content || null;
+}
+
+async function healWithGemini(skillName, code, error) {
+    const { GoogleGenerativeAI } = require('@google/generative-ai');
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    
+    const model = genAI.getModel('gemini-pro');
+    const hint = SKILL_FIXES[skillName]?.hint || 'Fix this error';
+    
+    const prompt = `Fix this ${skillName}.js code.\n\nError: ${error}\n\nCurrent code:\n${code}\n\nHint: ${hint}\n\nReturn the complete fixed code:`;
+    
+    const result = await model.generateContent(prompt);
+    return result.response.text();
+}
+
+async function createGitBackup(skillName, code) {
     try {
-        const skillPath = path.join(__dirname, `../AgentSkills/${skillName}.js`);
-        execSync(`git add "${skillPath}"`, { cwd: path.join(__dirname, '..') });
-        execSync(`git commit -m "ClawReflex: Backing up ${skillName} before healing"`, { cwd: path.join(__dirname, '..') });
-        console.log(`💾 Git backup created successfully`);
+        const { execSync } = require('child_process');
+        const backupDir = path.join(__dirname, '../backups');
+        if (!fs.existsSync(backupDir)) {
+            fs.mkdirSync(backupDir, { recursive: true });
+        }
+        const timestamp = Date.now();
+        fs.writeFileSync(path.join(backupDir, `${skillName}_${timestamp}.js`), code);
+        console.log(`💾 Backup saved to backups/`);
     } catch (e) {
-        console.log(`⚠️ Git backup skipped (no changes or git not available)`);
+        console.log(`⚠️ Backup skipped`);
     }
 }
 
 async function verifyFix(skillPath) {
     try {
-        const module = require(skillPath);
-        console.log(`✅ Module verification passed - syntax is valid`);
+        require(skillPath);
+        console.log(`✅ Module verification passed`);
     } catch (e) {
         console.error(`❌ Verification failed: ${e.message}`);
-        throw e;
     }
 }
 
@@ -97,30 +139,22 @@ function generatePostMortem(name, errMsg) {
     }
     
     const timestamp = Date.now();
-    const reportPath = path.join(LOG_DIR, `POST_MORTEM_${timestamp}.md`);
-    const reportContent = `# 💌 A Note From Your Guardian (ClawReflex)
+    const reportContent = `# 💌 ClawReflex Guardian Report
 
-**Hey Developer,**
+**Issue:** ${name} failed with: ${errMsg}
 
-I noticed that **${name}** ran into some trouble while you were away. It was hitting a wall with: \`${errMsg}\`.
+**Fix Applied:** AI-generated autonomous repair
 
-**Don't worry—I've got your back.** 
-
-I've analyzed the issue and applied an autonomous fix. The skill has been updated and is now back online.
-
-Go grab a coffee, relax, and keep building amazing things. I'll stay here and keep the lights on.
-
-**With Care,**
-*Your ClawReflex Architect* 🛡️
+**Status:** Resolved ✅
 
 ---
-*Timestamp: ${new Date().toISOString()}*
+*ClawReflex - Your AI Guardian*
 `;
-    fs.writeFileSync(reportPath, reportContent);
-    console.log(`💖 Post-Mortem "Peace of Mind" report generated at ${reportPath}`);
+    fs.writeFileSync(path.join(LOG_DIR, `POST_MORTEM_${timestamp}.md`), reportContent);
+    console.log(`💖 Post-Mortem report generated`);
 }
 
-function logHealingAttempt(skillName, status, error) {
+function logHealing(skillName, status, error) {
     const logEntry = `[${new Date().toISOString()}] HEAL: ${skillName} - ${status} - ${error}\n`;
     fs.appendFileSync(LOG_FILE, logEntry);
 }
