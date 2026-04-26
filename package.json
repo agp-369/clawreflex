@@ -7,7 +7,7 @@
     "test": "mocha tests --exit",
     "start": "node src/monitor.js",
     "heal": "node src/surgeon.js WeatherSkill 'getaddrinfo ENOTFOUND api.legacy-weather.service'",
-    "demo": "node src/demo.js"
+    "demo": "node demo.js"
   },
   "keywords": [
     "openclaw",
