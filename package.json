@@ -9,7 +9,13 @@
     "heal": "node src/surgeon.js WeatherSkill 'getaddrinfo ENOTFOUND api.legacy-weather.service'",
     "demo": "node src/demo.js"
   },
-  "keywords": ["openclaw", "ai", "self-healing", "autonomous", "agent"],
+  "keywords": [
+    "openclaw",
+    "ai",
+    "self-healing",
+    "autonomous",
+    "agent"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
@@ -17,6 +23,6 @@
     "axios": "^1.15.0"
   },
   "devDependencies": {
-    "mocha": "^11.7.5"
+    "mocha": "^11.3.0"
   }
 }
