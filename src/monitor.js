@@ -59,12 +59,18 @@ function scanForFailures() {
     }
 }
 
+const processedErrors = new Set();
+
 function processBuffer(content) {
     const lines = content.trim().split('\n');
     
     for (const line of lines) {
         const match = line.match(FAILURE_PATTERN);
         if (match) {
+            // DEDUPLICATION: Check if we already handled this exact log entry
+            if (processedErrors.has(line)) continue;
+            processedErrors.add(line);
+
             const skillName = match[1];
             const errorMessage = match[2];
             

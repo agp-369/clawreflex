@@ -8,14 +8,12 @@ const axios = require('axios');
 async function getWeather(city) {
     console.log(`[WeatherSkill] Fetching weather for ${city}...`);
     
-    const API_URL = `https://api.legacy-weather.service/v1/current?q=${city}`;
-    
     try {
-        const response = await axios.get(API_URL, { timeout: 5000 });
+        const response = await axios.get(`http://wttr.in/${city}?format=j1`, { timeout: 5000 });
         return response.data;
     } catch (error) {
         const errorMsg = error.code === 'ENOTFOUND' 
-            ? 'getaddrinfo ENOTFOUND api.legacy-weather.service'
+            ? 'getaddrinfo ENOTFOUND wttr.in'
             : error.message;
             
         console.error(`[CRITICAL_FAILURE] WeatherSkill failed: ${errorMsg}`);
@@ -24,12 +22,26 @@ async function getWeather(city) {
 }
 
 async function getForecast(city, days = 3) {
-    const weather = await getWeather(city);
-    return {
-        city,
-        forecast: weather.forecast || 'Sunny',
-        days
-    };
+    try {
+        const weather = await getWeather(city);
+        const forecastData = weather.current_condition;
+        const forecast = [];
+        
+        for (let i = 0; i < days; i++) {
+            forecast.push({
+                day: i + 1,
+                weather: forecastData[0].weatherDesc[0].value
+            });
+        }
+        
+        return {
+            city,
+            forecast
+        };
+    } catch (error) {
+        console.error(`[CRITICAL_FAILURE] WeatherSkill failed: ${error.message}`);
+        throw error;
+    }
 }
 
 module.exports = { getWeather, getForecast };
