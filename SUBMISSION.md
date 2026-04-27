@@ -98,8 +98,6 @@ The core pattern works for any OpenClaw skill:
 3. Apply fix with Git backup
 4. Verify and report
 
-Code: github.com/anomalyco/opencode (search ClawReflex)
-
 ---
 
 #OpenClawChallenge #DevChallenge
